@@ -1,6 +1,22 @@
+// ── Configuração do Firebase ──
+// Suas chaves exatas, com a adição do databaseURL para o Realtime Database funcionar
+const firebaseConfig = {
+  apiKey: "AIzaSyCmc_HPJ_cp7JaAEkm7B0JNyorhdI9SAlQ",
+  authDomain: "truco-paulista-d2183.firebaseapp.com",
+  databaseURL: "https://truco-paulista-d2183-default-rtdb.firebaseio.com", 
+  projectId: "truco-paulista-d2183",
+  storageBucket: "truco-paulista-d2183.firebasestorage.app",
+  messagingSenderId: "375752356559",
+  appId: "1:375752356559:web:2cf2121a90bd2beebcfdba"
+};
+
+// Inicializa o Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const dbRef = db.ref('truco-championship');
+
 // ── State ──
-const STORAGE_KEY = "truco-championship";
-let state = loadState() || {
+let state = {
   players: [],
   matches: [],
   bracket: {
@@ -11,15 +27,24 @@ let state = loadState() || {
 };
 let activeTab = "participants";
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
+// ── Escutando Mudanças em Tempo Real ──
+dbRef.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    state.players = data.players || [];
+    state.matches = data.matches || [];
+    state.bracket = data.bracket || state.bracket;
+  }
+  
+  if (document.getElementById("tab-" + activeTab)) {
+    renderTab();
+  }
+});
+
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  dbRef.set(state);
 }
+
 function uuid() {
   return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
@@ -79,7 +104,7 @@ function renderParticipants() {
   const list = document.getElementById("player-list");
   const count = document.getElementById("player-count");
   list.innerHTML = "";
-  if (state.players.length === 0) {
+  if (!state.players || state.players.length === 0) {
     list.innerHTML = '<div class="empty-msg">Nenhum jogador cadastrado</div>';
   } else {
     state.players.forEach((p, i) => {
@@ -96,7 +121,7 @@ function renderParticipants() {
       list.appendChild(row);
     });
   }
-  const n = state.players.length;
+  const n = state.players ? state.players.length : 0;
   count.textContent = `${n} jogador${n !== 1 ? "es" : ""} cadastrado${n !== 1 ? "s" : ""}`;
 }
 
@@ -107,20 +132,18 @@ function addPlayer() {
   state.players.push({ id: uuid(), name, points: 0, wins: 0 });
   input.value = "";
   saveState();
-  renderParticipants();
 }
 
 function removePlayer(id) {
   state.players = state.players.filter(p => p.id !== id);
   saveState();
-  renderParticipants();
 }
 
 // ── Scores ──
 function renderScores() {
   const list = document.getElementById("score-list");
   list.innerHTML = "";
-  const sorted = [...state.players].sort((a, b) => b.points - a.points || b.wins - a.wins);
+  const sorted = [...(state.players || [])].sort((a, b) => b.points - a.points || b.wins - a.wins);
   if (sorted.length === 0) {
     list.innerHTML = '<div class="empty-msg">Adicione jogadores primeiro</div>';
     return;
@@ -135,9 +158,10 @@ function renderScores() {
       <div class="score-value" id="pts-${p.id}">${p.points}</div>
       <div class="wins-value">${p.wins}</div>
       <div class="score-actions">
-        <button class="btn btn-outline btn-icon" onclick="updateScore('${p.id}',1)">+</button>
-        <button class="btn btn-outline btn-icon" onclick="updateScore('${p.id}',-1)">−</button>
-        <button class="btn btn-ghost btn-icon" onclick="addWin('${p.id}')" title="Vitória">🏆</button>
+        <button class="btn btn-outline btn-icon" onclick="updateScore('${p.id}',1)" title="Adicionar Ponto">+</button>
+        <button class="btn btn-outline btn-icon" onclick="updateScore('${p.id}',-1)" title="Remover Ponto">−</button>
+        <button class="btn btn-ghost btn-icon" onclick="updateWin('${p.id}', 1)" title="Adicionar Vitória">🏆</button>
+        <button class="btn btn-ghost btn-icon" onclick="updateWin('${p.id}', -1)" title="Remover Vitória">❌</button>
       </div>
     `;
     list.appendChild(row);
@@ -149,16 +173,14 @@ function updateScore(id, delta) {
   if (p) {
     p.points = Math.max(0, p.points + delta);
     saveState();
-    renderScores();
   }
 }
 
-function addWin(id) {
+function updateWin(id, delta) {
   const p = state.players.find(x => x.id === id);
   if (p) {
-    p.wins++;
+    p.wins = Math.max(0, p.wins + delta);
     saveState();
-    renderScores();
   }
 }
 
@@ -168,9 +190,9 @@ function renderDraw() {
   const hint = document.getElementById("draw-hint");
   const shuffleEl = document.getElementById("shuffle-anim");
   shuffleEl.style.display = "none";
-  hint.textContent = state.players.length < 4 ? "Mínimo de 4 jogadores para sortear" : "";
+  hint.textContent = (state.players || []).length < 4 ? "Mínimo de 4 jogadores para sortear" : "";
   results.innerHTML = "";
-  state.matches.forEach((m, i) => {
+  (state.matches || []).forEach((m, i) => {
     const card = document.createElement("div");
     card.className = "match-card";
     card.style.animationDelay = (i * 0.15) + "s";
@@ -187,7 +209,7 @@ function renderDraw() {
 }
 
 function drawTeams() {
-  if (state.players.length < 4) return;
+  if (!state.players || state.players.length < 4) return;
   const btn = document.getElementById("draw-btn");
   const shuffleEl = document.getElementById("shuffle-anim");
   const results = document.getElementById("draw-results");
@@ -209,7 +231,6 @@ function drawTeams() {
     }
     state.matches = matches;
 
-    // Auto-fill bracket
     if (matches.length >= 2) {
       state.bracket = {
         semi1: { teamA: matches[0].teamA.join(" & "), teamB: matches[0].teamB.join(" & ") },
@@ -222,7 +243,6 @@ function drawTeams() {
     btn.disabled = false;
     btn.textContent = "🔀 Sortear Duplas";
     shuffleEl.style.display = "none";
-    renderDraw();
   }, 2000);
 }
 
@@ -268,16 +288,14 @@ function setWinner(matchKey, side) {
   if (matchKey === "semi1" || matchKey === "semi2") {
     state.bracket.final.teamA = state.bracket.semi1.winner || "";
     state.bracket.final.teamB = state.bracket.semi2.winner || "";
-    // Clear final winner if semis changed
     if (state.bracket.final.winner &&
         state.bracket.final.winner !== state.bracket.final.teamA &&
         state.bracket.final.winner !== state.bracket.final.teamB) {
-      delete state.bracket.final.winner;
+          delete state.bracket.final.winner;
     }
   }
 
   saveState();
-  renderBracket();
 }
 
 function renderChampion() {
@@ -303,7 +321,6 @@ function esc(str) {
   return d.innerHTML;
 }
 
-// Enter key for player input
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && document.activeElement && document.activeElement.id === "player-input") {
     addPlayer();
