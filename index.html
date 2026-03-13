@@ -1,136 +1,106 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Truco Pro | Campeonato Paulista</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campeonato Estadual Paulista de Truco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-    <!-- ANIMAÇÃO DE ABERTURA -->
-    <div id="intro-screen" class="intro-container">
-        <div class="particles"></div>
-        <div class="card-3d-scene">
-            <div class="card-3d">
-                <div class="card-face front">TRUCO</div>
-                <div class="card-face back">SP</div>
-            </div>
-            <h1 class="intro-title">Campeonato Estadual <br><span>Paulista de Truco</span></h1>
+  <div id="intro" class="intro-screen">
+    <div class="intro-particles" id="introParticles"></div>
+    <div class="intro-card-wrap">
+      <div class="intro-card" aria-hidden="true">
+        <div class="card-face card-front">
+          <span class="card-emblem">A</span>
         </div>
+        <div class="card-face card-back">
+          <p class="intro-title">CAMPEONATO ESTADUAL PAULISTA DE TRUCO</p>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- SITE PRINCIPAL -->
-    <main id="app" class="hidden">
-        <header class="header">
-            <h1 class="glow-text">Campeonato Estadual Paulista de Truco</h1>
-            <nav class="menu">
-                <button class="nav-item active" onclick="switchTab('participantes')">Participantes</button>
-                <button class="nav-item" onclick="switchTab('pontuacao')">Pontuação</button>
-                <button class="nav-item" onclick="switchTab('sorteio')">Painel de Sorteio</button>
-                <button class="nav-item" onclick="switchTab('chave')">Chave</button>
-            </nav>
-        </header>
+  <main id="app" class="app hidden">
+    <header class="hero">
+      <p class="hero-kicker">Painel Oficial</p>
+      <h1>Campeonato Estadual Paulista de Truco</h1>
+    </header>
 
-        <section class="content">
-            <!-- ABA 1: PARTICIPANTES -->
-            <div id="tab-participantes" class="tab-pane active">
-                <div class="glass-card">
-                    <h2>Gerenciar Jogadores</h2>
-                    <div class="input-row">
-                        <input type="text" id="playerInput" placeholder="Nome do Jogador...">
-                        <button class="btn-neon" onclick="addPlayer()">Adicionar</button>
-                    </div>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th class="text-right">Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="playerTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <nav class="tabs" aria-label="Navegação principal">
+      <button class="tab-btn active" data-tab="participants">Participantes</button>
+      <button class="tab-btn" data-tab="score">Pontuação</button>
+      <button class="tab-btn" data-tab="draw">Painel de Sorteio</button>
+      <button class="tab-btn" data-tab="bracket">Chave do Campeonato</button>
+    </nav>
 
-            <!-- ABA 2: PONTUAÇÃO -->
-            <div id="tab-pontuacao" class="tab-pane">
-                <div class="glass-card">
-                    <h2>Classificação Geral</h2>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Jogador</th>
-                                    <th>Pontos</th>
-                                    <th>Vitórias</th>
-                                    <th class="text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="scoreTable"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <section id="participants" class="tab-panel active">
+      <div class="card">
+        <h2>Cadastro de Jogadores</h2>
+        <div class="form-row">
+          <input id="playerName" type="text" placeholder="Digite o nome do jogador" maxlength="30" />
+          <button id="addPlayerBtn" class="primary-btn">Adicionar Jogador</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="playersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-            <!-- ABA 3: SORTEIO -->
-            <div id="tab-sorteio" class="tab-pane">
-                <div class="glass-card text-center">
-                    <h2>Sorteio de Duplas</h2>
-                    <button class="btn-neon btn-lg" onclick="handleShuffle()">Sortear Duplas</button>
-                    
-                    <div id="shuffle-anim" class="shuffle-box hidden">
-                        <div class="mini-card-anim"></div>
-                        <p>Embaralhando...</p>
-                    </div>
+    <section id="score" class="tab-panel">
+      <div class="card">
+        <h2>Pontuação e Vitórias</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Pontos</th>
+                <th>Vitórias</th>
+                <th>Controles</th>
+              </tr>
+            </thead>
+            <tbody id="scoreTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-                    <div id="drawResults" class="results-grid"></div>
-                </div>
-            </div>
+    <section id="draw" class="tab-panel">
+      <div class="card">
+        <h2>Sorteio de Duplas</h2>
+        <div class="form-row draw-row">
+          <button id="drawTeamsBtn" class="primary-btn">Sortear Duplas</button>
+          <p class="hint">Necessário no mínimo 8 participantes para montar semifinal e final.</p>
+        </div>
+        <div id="shuffleAnimation" class="shuffle-animation hidden" aria-live="polite">
+          <div class="mini-card"></div>
+          <div class="mini-card"></div>
+          <div class="mini-card"></div>
+        </div>
+        <div id="drawResults" class="draw-results"></div>
+      </div>
+    </section>
 
-            <!-- ABA 4: CHAVE -->
-            <div id="tab-chave" class="tab-pane">
-                <div class="bracket-container">
-                    <div class="bracket-column">
-                        <h3>Semifinais</h3>
-                        <div class="match-box">
-                            <div class="team" id="sf1-1">---</div>
-                            <div class="vs">VS</div>
-                            <div class="team" id="sf1-2">---</div>
-                            <button class="btn-win" onclick="winMatch('sf1', 'f1')">Definir Vencedor</button>
-                        </div>
-                        <div class="match-box">
-                            <div class="team" id="sf2-1">---</div>
-                            <div class="vs">VS</div>
-                            <div class="team" id="sf2-2">---</div>
-                            <button class="btn-win" onclick="winMatch('sf2', 'f2')">Definir Vencedor</button>
-                        </div>
-                    </div>
-                    
-                    <div class="bracket-column">
-                        <h3>Grande Final</h3>
-                        <div class="match-box final">
-                            <div class="team" id="f-1">---</div>
-                            <div class="vs">VS</div>
-                            <div class="team" id="f-2">---</div>
-                            <button class="btn-win neon" onclick="winFinal()">Coroar Campeão</button>
-                        </div>
-                    </div>
+    <section id="bracket" class="tab-panel">
+      <div class="card">
+        <h2>Chave do Campeonato</h2>
+        <div id="bracketBoard" class="bracket-board"></div>
+      </div>
+    </section>
+  </main>
 
-                    <div class="bracket-column">
-                        <h3>Campeão</h3>
-                        <div id="champion-box" class="champion-display">
-                            <span class="trophy">🏆</span>
-                            <h2 id="champion-name">?</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
