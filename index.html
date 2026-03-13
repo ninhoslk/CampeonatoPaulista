@@ -4,103 +4,123 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Campeonato Estadual Paulista de Truco</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <meta name="description" content="Sistema profissional para gerenciamento do Campeonato Estadual Paulista de Truco — pontuação, sorteio de duplas e chave do campeonato." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="intro" class="intro-screen">
-    <div class="intro-particles" id="introParticles"></div>
-    <div class="intro-card-wrap">
-      <div class="intro-card" aria-hidden="true">
-        <div class="card-face card-front">
-          <span class="card-emblem">A</span>
-        </div>
-        <div class="card-face card-back">
-          <p class="intro-title">CAMPEONATO ESTADUAL PAULISTA DE TRUCO</p>
+
+<!-- ═══ INTRO ═══ -->
+<div id="intro">
+  <div class="particles"></div>
+  <div class="card-3d-wrapper">
+    <div class="card-3d">
+      <!-- FRONT -->
+      <div class="card-face card-front">
+        <div class="glow-overlay"></div>
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <span class="card-suit s1">♠</span>
+        <span class="card-suit s2">♥</span>
+        <span class="card-suit s3">♦</span>
+        <span class="card-suit s4">♣</span>
+        <h1>CAMPEONATO<br>ESTADUAL<br>PAULISTA<br>DE TRUCO</h1>
+        <div class="shine"></div>
+      </div>
+      <!-- BACK -->
+      <div class="card-face card-back">
+        <div class="pattern"></div>
+        <span class="corner-suit s1">♣</span>
+        <span class="corner-suit s2">♣</span>
+        <span class="corner-suit s3">♣</span>
+        <span class="corner-suit s4">♣</span>
+        <div style="text-align:center;z-index:1;position:relative;">
+          <div class="zap-symbol">♣</div>
+          <div class="zap-label">ZAP</div>
         </div>
       </div>
     </div>
+    <div class="card-shadow"></div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+  <!-- Title -->
+  <div class="main-title">
+    <h1>CAMPEONATO ESTADUAL<br>PAULISTA DE TRUCO</h1>
+    <div class="suits-row">
+      <span>♠</span><span>♥</span><span>♦</span><span>♣</span>
+    </div>
   </div>
 
-  <main id="app" class="app hidden">
-    <header class="hero">
-      <p class="hero-kicker">Painel Oficial</p>
-      <h1>Campeonato Estadual Paulista de Truco</h1>
-    </header>
+  <!-- Tabs -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="participants">👥 <span class="label">Participantes</span></button>
+    <button class="tab-btn" data-tab="scores">🏆 <span class="label">Pontuação</span></button>
+    <button class="tab-btn" data-tab="draw">🔀 <span class="label">Sorteio</span></button>
+    <button class="tab-btn" data-tab="bracket">📊 <span class="label">Chave</span></button>
+  </div>
 
-    <nav class="tabs" aria-label="Navegação principal">
-      <button class="tab-btn active" data-tab="participants">Participantes</button>
-      <button class="tab-btn" data-tab="score">Pontuação</button>
-      <button class="tab-btn" data-tab="draw">Painel de Sorteio</button>
-      <button class="tab-btn" data-tab="bracket">Chave do Campeonato</button>
-    </nav>
+  <!-- ── Participants ── -->
+  <div class="tab-panel active" id="tab-participants">
+    <div class="add-form">
+      <input type="text" id="player-input" placeholder="Nome do jogador..." />
+      <button class="btn btn-neon" onclick="addPlayer()">➕ <span class="label">Adicionar</span></button>
+    </div>
+    <div class="glass-card participants">
+      <div class="table-header"><span>Nome</span><span>Ação</span></div>
+      <div id="player-list"></div>
+    </div>
+    <div class="count-msg" id="player-count"></div>
+  </div>
 
-    <section id="participants" class="tab-panel active">
-      <div class="card">
-        <h2>Cadastro de Jogadores</h2>
-        <div class="form-row">
-          <input id="playerName" type="text" placeholder="Digite o nome do jogador" maxlength="30" />
-          <button id="addPlayerBtn" class="primary-btn">Adicionar Jogador</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="playersTableBody"></tbody>
-          </table>
-        </div>
+  <!-- ── Scores ── -->
+  <div class="tab-panel" id="tab-scores">
+    <div class="glass-card scores">
+      <div class="table-header">
+        <span>Nome</span><span style="text-align:center">Pontos</span><span style="text-align:center">Vitórias</span><span style="text-align:center">Ações</span>
       </div>
-    </section>
+      <div id="score-list"></div>
+    </div>
+  </div>
 
-    <section id="score" class="tab-panel">
-      <div class="card">
-        <h2>Pontuação e Vitórias</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Pontos</th>
-                <th>Vitórias</th>
-                <th>Controles</th>
-              </tr>
-            </thead>
-            <tbody id="scoreTableBody"></tbody>
-          </table>
-        </div>
+  <!-- ── Draw ── -->
+  <div class="tab-panel" id="tab-draw">
+    <div class="draw-center">
+      <button class="btn btn-neon btn-lg" id="draw-btn" onclick="drawTeams()">🔀 Sortear Duplas</button>
+      <div class="draw-hint" id="draw-hint"></div>
+    </div>
+    <div class="shuffle-cards" id="shuffle-anim" style="display:none">
+      <div class="shuffle-card">♠</div>
+      <div class="shuffle-card">♥</div>
+      <div class="shuffle-card">♦</div>
+      <div class="shuffle-card">♣</div>
+    </div>
+    <div id="draw-results"></div>
+  </div>
+
+  <!-- ── Bracket ── -->
+  <div class="tab-panel" id="tab-bracket">
+    <div class="bracket-layout">
+      <div class="semis">
+        <div class="bracket-card" id="bracket-semi1"></div>
+        <div class="bracket-card" id="bracket-semi2"></div>
       </div>
-    </section>
-
-    <section id="draw" class="tab-panel">
-      <div class="card">
-        <h2>Sorteio de Duplas</h2>
-        <div class="form-row draw-row">
-          <button id="drawTeamsBtn" class="primary-btn">Sortear Duplas</button>
-          <p class="hint">Necessário no mínimo 8 participantes para montar semifinal e final.</p>
-        </div>
-        <div id="shuffleAnimation" class="shuffle-animation hidden" aria-live="polite">
-          <div class="mini-card"></div>
-          <div class="mini-card"></div>
-          <div class="mini-card"></div>
-        </div>
-        <div id="drawResults" class="draw-results"></div>
+      <div class="bracket-connector">
+        <div class="connector-line"></div>
+        <div class="connector-vert"></div>
+        <div class="connector-line"></div>
       </div>
-    </section>
-
-    <section id="bracket" class="tab-panel">
-      <div class="card">
-        <h2>Chave do Campeonato</h2>
-        <div id="bracketBoard" class="bracket-board"></div>
+      <div>
+        <div class="bracket-card" id="bracket-final"></div>
       </div>
-    </section>
-  </main>
+    </div>
+    <div class="champion-box" id="champion" style="display:none"></div>
+  </div>
+</div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
