@@ -4,17 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Campeonato Estadual Paulista de Truco</title>
-  <meta name="description" content="Sistema profissional para gerenciamento do Campeonato Estadual Paulista de Truco — pontuação, sorteio de duplas e chave do campeonato." />
+  <meta name="description" content="Sistema profissional para gerenciamento do Campeonato Estadual Paulista de Truco." />
   <link rel="stylesheet" href="style.css" />
+  
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
-<!-- ═══ INTRO ═══ -->
 <div id="intro">
   <div class="particles"></div>
   <div class="card-3d-wrapper">
     <div class="card-3d">
-      <!-- FRONT -->
       <div class="card-face card-front">
         <div class="glow-overlay"></div>
         <div class="corner tl"></div>
@@ -28,7 +29,6 @@
         <h1>CAMPEONATO<br>ESTADUAL<br>PAULISTA<br>DE TRUCO</h1>
         <div class="shine"></div>
       </div>
-      <!-- BACK -->
       <div class="card-face card-back">
         <div class="pattern"></div>
         <span class="corner-suit s1">♣</span>
@@ -45,9 +45,7 @@
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
 <div id="app">
-  <!-- Title -->
   <div class="main-title">
     <h1>CAMPEONATO ESTADUAL<br>PAULISTA DE TRUCO</h1>
     <div class="suits-row">
@@ -55,7 +53,6 @@
     </div>
   </div>
 
-  <!-- Tabs -->
   <div class="tab-nav">
     <button class="tab-btn active" data-tab="participants">👥 <span class="label">Participantes</span></button>
     <button class="tab-btn" data-tab="scores">🏆 <span class="label">Pontuação</span></button>
@@ -63,7 +60,6 @@
     <button class="tab-btn" data-tab="bracket">📊 <span class="label">Chave</span></button>
   </div>
 
-  <!-- ── Participants ── -->
   <div class="tab-panel active" id="tab-participants">
     <div class="add-form">
       <input type="text" id="player-input" placeholder="Nome do jogador..." />
@@ -76,7 +72,6 @@
     <div class="count-msg" id="player-count"></div>
   </div>
 
-  <!-- ── Scores ── -->
   <div class="tab-panel" id="tab-scores">
     <div class="glass-card scores">
       <div class="table-header">
@@ -86,7 +81,6 @@
     </div>
   </div>
 
-  <!-- ── Draw ── -->
   <div class="tab-panel" id="tab-draw">
     <div class="draw-center">
       <button class="btn btn-neon btn-lg" id="draw-btn" onclick="drawTeams()">🔀 Sortear Duplas</button>
@@ -101,7 +95,6 @@
     <div id="draw-results"></div>
   </div>
 
-  <!-- ── Bracket ── -->
   <div class="tab-panel" id="tab-bracket">
     <div class="bracket-layout">
       <div class="semis">
