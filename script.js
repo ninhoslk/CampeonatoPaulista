@@ -1,5 +1,4 @@
 // ── Configuração do Firebase ──
-// Suas chaves exatas, com a adição do databaseURL para o Realtime Database funcionar
 const firebaseConfig = {
   apiKey: "AIzaSyCmc_HPJ_cp7JaAEkm7B0JNyorhdI9SAlQ",
   authDomain: "truco-paulista-d2183.firebaseapp.com",
@@ -15,7 +14,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const dbRef = db.ref('truco-championship');
 
-// ── State ──
+// ── State (Estado do App) ──
 let state = {
   players: [],
   matches: [],
@@ -26,15 +25,20 @@ let state = {
   },
 };
 let activeTab = "participants";
+let isInitialLoad = true; 
 
-// ── Escutando Mudanças em Tempo Real ──
+// ── Escutando Mudanças em Tempo Real (Onde a mágica acontece) ──
 dbRef.on('value', (snapshot) => {
   const data = snapshot.val();
   if (data) {
-    state.players = data.players || [];
-    state.matches = data.matches || [];
-    state.bracket = data.bracket || state.bracket;
+    state = data;
+    // Garante que as propriedades existam para não dar erro no render
+    if (!state.players) state.players = [];
+    if (!state.matches) state.matches = [];
+    if (!state.bracket) state.bracket = { semi1: {}, semi2: {}, final: {} };
   }
+  
+  isInitialLoad = false;
   
   if (document.getElementById("tab-" + activeTab)) {
     renderTab();
@@ -42,23 +46,28 @@ dbRef.on('value', (snapshot) => {
 });
 
 function saveState() {
-  dbRef.set(state);
+  // Salva no Firebase e todos os usuários verão a mudança na hora
+  dbRef.set(state).catch(error => {
+    console.error("Erro ao salvar:", error);
+  });
 }
 
 function uuid() {
   return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
-// ── Intro ──
+// ── Ciclo de Vida / Intro ──
 document.addEventListener("DOMContentLoaded", () => {
   createParticles();
   setTimeout(() => {
     const intro = document.getElementById("intro");
-    intro.classList.add("hidden");
-    setTimeout(() => {
-      intro.style.display = "none";
-      document.getElementById("app").classList.add("visible");
-    }, 800);
+    if(intro) {
+        intro.classList.add("hidden");
+        setTimeout(() => {
+          intro.style.display = "none";
+          document.getElementById("app").classList.add("visible");
+        }, 800);
+    }
   }, 4500);
   initTabs();
   renderTab();
@@ -66,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function createParticles() {
   const container = document.querySelector("#intro .particles");
+  if(!container) return;
   for (let i = 0; i < 40; i++) {
     const p = document.createElement("div");
     p.className = "particle";
@@ -75,7 +85,7 @@ function createParticles() {
   }
 }
 
-// ── Tabs ──
+// ── Gerenciamento de Abas ──
 function initTabs() {
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -99,11 +109,13 @@ function renderTab() {
   }
 }
 
-// ── Participants ──
+// ── Aba Participantes ──
 function renderParticipants() {
   const list = document.getElementById("player-list");
   const count = document.getElementById("player-count");
+  if(!list) return;
   list.innerHTML = "";
+  
   if (!state.players || state.players.length === 0) {
     list.innerHTML = '<div class="empty-msg">Nenhum jogador cadastrado</div>';
   } else {
@@ -122,13 +134,14 @@ function renderParticipants() {
     });
   }
   const n = state.players ? state.players.length : 0;
-  count.textContent = `${n} jogador${n !== 1 ? "es" : ""} cadastrado${n !== 1 ? "s" : ""}`;
+  if(count) count.textContent = `${n} jogador${n !== 1 ? "es" : ""} cadastrado${n !== 1 ? "s" : ""}`;
 }
 
 function addPlayer() {
   const input = document.getElementById("player-input");
   const name = input.value.trim();
   if (!name) return;
+  if (!state.players) state.players = [];
   state.players.push({ id: uuid(), name, points: 0, wins: 0 });
   input.value = "";
   saveState();
@@ -139,15 +152,18 @@ function removePlayer(id) {
   saveState();
 }
 
-// ── Scores ──
+// ── Aba Pontuação (Com o novo botão de remover vitória) ──
 function renderScores() {
   const list = document.getElementById("score-list");
+  if(!list) return;
   list.innerHTML = "";
   const sorted = [...(state.players || [])].sort((a, b) => b.points - a.points || b.wins - a.wins);
+  
   if (sorted.length === 0) {
     list.innerHTML = '<div class="empty-msg">Adicione jogadores primeiro</div>';
     return;
   }
+  
   sorted.forEach((p, i) => {
     const row = document.createElement("div");
     row.className = "table-row";
@@ -155,7 +171,7 @@ function renderScores() {
     const crownHtml = i === 0 && sorted.length > 1 ? '<span class="crown">👑</span>' : '';
     row.innerHTML = `
       <div class="player-name">${crownHtml}${esc(p.name)}</div>
-      <div class="score-value" id="pts-${p.id}">${p.points}</div>
+      <div class="score-value">${p.points}</div>
       <div class="wins-value">${p.wins}</div>
       <div class="score-actions">
         <button class="btn btn-outline btn-icon" onclick="updateScore('${p.id}',1)" title="Adicionar Ponto">+</button>
@@ -184,14 +200,15 @@ function updateWin(id, delta) {
   }
 }
 
-// ── Draw ──
+// ── Aba Sorteio ──
 function renderDraw() {
   const results = document.getElementById("draw-results");
   const hint = document.getElementById("draw-hint");
-  const shuffleEl = document.getElementById("shuffle-anim");
-  shuffleEl.style.display = "none";
+  if(!results) return;
+  
   hint.textContent = (state.players || []).length < 4 ? "Mínimo de 4 jogadores para sortear" : "";
   results.innerHTML = "";
+  
   (state.matches || []).forEach((m, i) => {
     const card = document.createElement("div");
     card.className = "match-card";
@@ -213,13 +230,14 @@ function drawTeams() {
   const btn = document.getElementById("draw-btn");
   const shuffleEl = document.getElementById("shuffle-anim");
   const results = document.getElementById("draw-results");
+  
   btn.disabled = true;
   btn.textContent = "⏳ Sorteando...";
   results.innerHTML = "";
   shuffleEl.style.display = "flex";
 
   setTimeout(() => {
-    const shuffled = shuffle([...state.players]);
+    const shuffled = [...state.players].sort(() => Math.random() - 0.5);
     const matches = [];
     for (let i = 0; i <= shuffled.length - 4; i += 4) {
       matches.push({
@@ -246,15 +264,7 @@ function drawTeams() {
   }, 2000);
 }
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-// ── Bracket ──
+// ── Aba Chaveamento ──
 function renderBracket() {
   const b = state.bracket;
   renderBracketCard("semi1", "Semifinal 1", b.semi1);
@@ -265,8 +275,9 @@ function renderBracket() {
 
 function renderBracketCard(key, label, data) {
   const el = document.getElementById("bracket-" + key);
+  if(!el) return;
   el.innerHTML = `<div class="b-label">${label}</div>`;
-  if (!data.teamA) {
+  if (!data || !data.teamA) {
     el.innerHTML += '<div class="bracket-waiting">Aguardando duplas</div>';
     return;
   }
@@ -291,7 +302,7 @@ function setWinner(matchKey, side) {
     if (state.bracket.final.winner &&
         state.bracket.final.winner !== state.bracket.final.teamA &&
         state.bracket.final.winner !== state.bracket.final.teamB) {
-          delete state.bracket.final.winner;
+      delete state.bracket.final.winner;
     }
   }
 
@@ -300,7 +311,8 @@ function setWinner(matchKey, side) {
 
 function renderChampion() {
   const el = document.getElementById("champion");
-  if (state.bracket.final.winner) {
+  if(!el) return;
+  if (state.bracket && state.bracket.final && state.bracket.final.winner) {
     el.innerHTML = `
       <div class="champion-inner">
         <div class="champion-icon">👑</div>
@@ -314,8 +326,9 @@ function renderChampion() {
   }
 }
 
-// ── Helpers ──
+// ── Auxiliares ──
 function esc(str) {
+  if(!str) return "";
   const d = document.createElement("div");
   d.textContent = str;
   return d.innerHTML;
